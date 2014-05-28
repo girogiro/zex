@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="sk">
+<head>
+	<meta charset="utf-8">
+	<title>Zastupiteľstvo EXplorer</title>
+	<meta name="author" content="Jaroslav Semančík">
+	{% load staticfiles %}
+	<link rel="stylesheet" href="{% static 'zex/css/style.css' %}">	
+	<!--[if lt IE 9]>
+	<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+</head>
+  
+<body>
+<div id="left-panel">
+	<div id="player"></div>
+	<form id="search-form" action="" method="get">
+		<ul>
+			<li id="vyber-zasadnutia">
+				<label for="zasadnutie-select">Zasadnutie:</label>
+				<select id="zasadnutie-select" name="dz" style="width: 140px">
+				</select>
+			</li>
+			<li id="vyber-bodu">
+				<label for="bod-select">Bod:</label>
+				<select id="bod-select" name="cb" style="width: 404px">
+				</select>
+			</li>
+			<li id="najst-text">
+				<label for="text-input">Text:</label>
+				<input id="text-input" name="q" type="text" style="width: 400px">
+				<p class="description">Diakritika sa ignoruje, stačí začiatok slova, hľadá sa súčasný výskyt všetkých slov.<br>
+				Napr. <a href="/zex/?q=mds">mds</a> alebo <a href="/zex/?q=jaros%20interpel">jaros interpel</a></p>
+			</li>
+			<li><input type="submit" value="Nájdi" id="submit-button" /></li>
+		</ul>
+	</form>
+</div>
+
+<div id="right-panel">
+	{% if najdene_zasadnutia %}
+		<div class="zoznam-bodov">
+			{% for zasadnutie in najdene_zasadnutia %}
+				{% if najdene_zasadnutia|length > 1 %}<h3>{{ zasadnutie.polia.datum }}</h3>{% endif %}
+				{% if zasadnutie.body|length > 1 %}
+					{% for bod in zasadnutie.body %}
+						<p><a href="#zasadnutie-{{ zasadnutie.polia.datum|date:'j.n.Y' }}-bod-{{ bod.polia.cislo|floatformat }}">{{ bod.polia.cislo|floatformat }}. {{ bod.polia.nazov }}</a></p>
+					{% endfor %}
+				{% endif %}
+			{% endfor %}
+		</div>
+		{% for zasadnutie in najdene_zasadnutia %}
+			<h2>{{ zasadnutie.polia.datum }}</h2>
+			{% for bod in zasadnutie.body %}
+				<div class="bod" id="zasadnutie-{{ zasadnutie.polia.datum|date:'j.n.Y' }}-bod-{{ bod.polia.cislo|floatformat }}">
+					<h3>{{ bod.polia.cislo|floatformat }}. {{ bod.polia.nazov }}</h3>
+					<p class="predklada">{{ bod.polia.predklada }}</p>
+					{% for moment in bod.momenty %}
+						<div class="moment">
+							<p class="nazov">{{ moment.nazov_prefix }}<a href="javascript:;" onclick="spustiMoment('{{ moment.video.youtube_id }}', {{ moment.cas }})">{{ moment.nazov_link }}</a>{{ moment.nazov_suffix }}</p>
+							{% if moment.anotacia %}
+								<div class="anotacia">
+									{{ moment.anotacia|safe }}
+								</div>
+							{% endif %}
+						</div>
+					{% endfor %}
+				</div>
+			{% endfor %}
+		{% endfor %}
+	{% else %}
+		<p class="oznam">{{ oznam }}</p>
+	{% endif %}
+</div>
+
+ <script>
+		var tag = document.createElement('script');
+		tag.src = "https://www.youtube.com/iframe_api";
+		var firstScriptTag = document.getElementsByTagName('script')[0];
+		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+		var player;
+		function onYouTubeIframeAPIReady() {
+			if (prveVideo.id) {
+				player = new YT.Player('player', {
+					width: 480,
+					height: 360,
+					videoId: prveVideo.id,
+					playerVars: {
+						'rel': 0,
+						'showinfo': 0,
+						'modestbranding': 1,
+						'startSeconds': prveVideo.cas,
+					}
+				});
+			}
+		}
+		
+		var prveVideo = {
+			id: '{% if prvy_moment %}{{ prvy_moment.video.youtube_id }}{% endif %}',
+			cas: {% if prvy_moment %}{{ prvy_moment.cas }}{% else %}0{% endif %}
+		};
+		var aktualneVideoId;
+		function spustiMoment(video_id, cas) {
+			if (video_id == aktualneVideoId) {
+				player.seekTo(cas);
+				player.playVideo();
+			} else {
+				player.loadVideoById(video_id, cas);
+				aktualneVideoId = video_id;
+			}
+		}
+	</script>
+
+	<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+	<script src="{% static 'zex/js/zasadnutia.js' %}"></script>
+	<script src="{% static 'zex/js/script.js' %}"></script>
+	<script src="{% static 'zex/js/highlight.js' %}"></script>
+</body>
+</html>

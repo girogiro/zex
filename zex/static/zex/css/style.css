@@ -1,0 +1,103 @@
+html {
+	background-color: #FFFFFF
+}
+body {
+	font-family: tahoma, verdana, sans-serif;
+	font-size: 12px;
+	line-height: 1.3em;
+}
+
+#left-panel {
+	width: 500px;
+	float: left;
+	position: fixed;
+}
+#right-panel {
+	margin-left: 500px;
+	max-width: 520px;
+}
+
+#player {
+	width: 480px;
+	height: 360px;
+	background: url(tv_noise.gif);
+	background: grey;
+}
+#search-form ul {
+	padding: 0;
+}
+#search-form li {
+	padding-left: 70px;
+	padding-top: .5em;
+	list-style-type: none;
+}
+#search-form label {
+	width: 70px;
+	margin: .5em 6px 0 -70px;
+	float: left;
+	text-align: right;
+}
+#search-form .description {
+	margin-left: .5em;
+	font-size: 11px;
+	color: grey;
+}
+#submit-button {
+	margin-left: 6px;
+	width: 50px;
+}
+
+a {
+	text-decoration: none;
+	color: #0381B3;
+}
+p {
+	margin: 0;
+}
+h2 {
+	margin-bottom: 0;
+	font-size: 1.4em;
+}
+h3 {
+	margin-bottom: 0;
+	font-size: 1em;
+}
+.bod h3 {
+	color: #DD3220;
+}
+.moment {
+	margin-top: .75em
+}
+.moment .anotacia {
+	color: #888;
+}
+.moment ul {
+	margin-top: .1em;
+	margin-bottom: 0;
+	padding-left: 2em;
+	list-style-type: outside;
+}
+.moment ul li {
+	text-indent: -.4em;
+}
+.oznam {
+	font-size: 1em;
+	font-weight: bold;
+	color: #DD3220;
+}
+
+.highlight.term-0 {
+	background-color: #fff499;
+}
+.highlight.term-1 {
+	background-color: #ffa499;
+}
+.highlight.term-2 {
+	background-color: #a4ff99;
+}
+.highlight.term-3 {
+	background-color: #b4e4ff;
+}
+.highlight {
+	background-color: lightgrey;
+}
