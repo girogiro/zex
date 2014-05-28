@@ -42,6 +42,8 @@ NAHRADENIA = [
 	(r'^-\b', r'- ', re.MULTILINE),
 ]
 
+# mapovanie z nazvu suboru videom na jeho YouTube ID
+video_ytid = {}
 
 def stiahni_csv(url):
 	'''Stiahne CSV súbor z danej URL a a vráti ho.
@@ -86,7 +88,9 @@ def update_data():
 	videa_csv = stiahni_csv(videolist_url)
 	videa_csv.pop(0)
 	global video_ytid
-	video_ytid = {riadok[0].strip(): re.search(r'\?v=(\w+)', riadok[1]).group(1) for riadok in videa_csv}
+	for riadok in videa_csv:
+		ytid = re.search(r'\?v=(\w+)', riadok[1])
+		video_ytid[riadok[0].strip()] = ytid.group(1) if ytid else ''
 
 	# updatuj data z jednotlivych listov
 	for url in sheet_urls:
