@@ -19,6 +19,8 @@ Install
 
 2. PostgreSQL 9
 
+  .. code-block:: console
+
       $ sudo apt-get install postgresql
       $ sudo apt-get install postgresql-contrib
 
@@ -68,7 +70,7 @@ Add the following line to ``/etc/apache2/ports.conf``:
 
 ::
 
-Listen 8080
+    Listen 8080
 
 and create file ``/etc/apache2/sites-available/zex.conf`` with content:
 
@@ -105,7 +107,7 @@ and create file ``/etc/apache2/sites-available/zex.conf`` with content:
             Require all granted
         </Directory>
     </VirtualHost>
-	
+
 Then
 
 .. code-block:: console
