@@ -87,5 +87,5 @@ def _uloz_body_zasadnuti():
 	context = { 'zasadnutia': zasadnutia }
 	js = render_to_string('zex/zasadnutia.js', context)
 	
-	with open('zex/static/zex/js/zasadnutia.js', 'w', encoding='utf-8', newline='') as file:
+	with open('/var/www/zex/zex/static/zex/js/zasadnutia.js', 'w', encoding='utf-8', newline='') as file:
 		file.write(js)

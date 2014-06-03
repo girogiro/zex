@@ -114,8 +114,8 @@ def update_from_sheet(url):
 			riadok[3] = p.sub(n[1], riadok[3])
 
 	# zapis precistene texty pre kontrolu
-	with open('precistene_data.csv', 'w', encoding = 'utf-8', newline = '') as f:
-		csv.writer(f).writerows(momenty_csv)
+#	with open('precistene_data.csv', 'w', encoding = 'utf-8', newline = '') as f:
+#		csv.writer(f).writerows(momenty_csv)
 
 	videa = { v.nazov: v for v in Video.objects.all() }
 	zasadnutia = { z.datum: z for z in Zasadnutie.objects.all() }
