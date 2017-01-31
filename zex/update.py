@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3	
 # -*- coding: utf-8 -*-
 
 import sys
@@ -37,12 +37,14 @@ NAHRADENIA = [
 	# pripojenie "Ohladne" k predchadzajucej vete
 	(r'\s+-?[Oo]hľadne', ' ohľadne', 0),
 	# zrusenie titulov
-	(r'(Bc.|Mgr.|Ing.|JUDr.|MUDr.|MVDr.|ThDr.|RNDr.|RSDr.|PhDr.|PaedDr.|Mgr. ?art.|Ing. ?arch.|Dipl. ?Ing.|doc.|prof.|, ?PhD.|, ?DrSc.) ?', '', 0),
+	(r'(Bc.|Mgr.|Ing.|JUDr.|MUDr.|MVDr.|ThDr.|RNDr.|RSDr.|PhDr.|PaedDr.|art.|arch.|Dipl.|doc.|prof.|, ?PhD.|, ?DrSc.) ?', '', 0),
 	# doplnenie medzery sa znak odrazky
 	(r'^-\b', r'- ', re.MULTILINE),
 ]
 
-# mapovanie z nazvu suboru videom na jeho YouTube ID
+# zoznam volebnych obdobi ako trojic (nazov, zaciatok, koniec)
+obdobia = []
+# mapovanie z nazvu suboru s videom na jeho YouTube ID
 video_ytid = {}
 
 def stiahni_csv(url):
@@ -83,9 +85,20 @@ def update_data():
 	for sheet in spreadsheet['feed']['entry']:
 		sheet_urls.extend([link['href'] for link in sheet['link'] if link['type'] == 'text/csv'])
 
-	# z prveho listu vytvor mapovanie z nazvu videa na jeho YouTube ID
-	videolist_url = sheet_urls.pop(0)
-	videa_csv = stiahni_csv(videolist_url)
+	# z prveho listu vytvor zoznam volebnych obdobi
+	url = sheet_urls.pop(0)
+	obdobia_csv = stiahni_csv(url)
+	obdobia_csv.pop(0)
+	global obdobia
+	for riadok in obdobia_csv:
+		nazov = riadok[0].strip()
+		zac = datetime.strptime(riadok[1].replace(' ', ''), '%d.%m.%Y').date()
+		kon = datetime.strptime(riadok[2].replace(' ', ''), '%d.%m.%Y').date() if riadok[2] else None
+		obdobia.append((nazov, zac, kon))
+
+	# z druheho listu vytvor mapovanie z nazvu videa na jeho YouTube ID
+	url = sheet_urls.pop(0)
+	videa_csv = stiahni_csv(url)
 	videa_csv.pop(0)
 	global video_ytid
 	for riadok in videa_csv:
@@ -97,7 +110,13 @@ def update_data():
 		update_from_sheet(url)
 	
 	# vrat pocet objektov v databaze
-	return Zasadnutie.objects.count(), Video.objects.count(), Bod.objects.count(), Moment.objects.count()
+	return (
+		Obdobie.objects.count(),
+		Zasadnutie.objects.count(),
+		Video.objects.count(),
+		Bod.objects.count(),
+		Moment.objects.count()
+	)
 
 
 def update_from_sheet(url):
@@ -117,32 +136,44 @@ def update_from_sheet(url):
 #	with open('precistene_data.csv', 'w', encoding = 'utf-8', newline = '') as f:
 #		csv.writer(f).writerows(momenty_csv)
 
-	videa = { v.nazov: v for v in Video.objects.all() }
-	zasadnutia = { z.datum: z for z in Zasadnutie.objects.all() }
+	obdobia_v_db = { o.nazov: o for o in Obdobie.objects.all() }
+	videa_v_db = { v.nazov: v for v in Video.objects.all() }
+	zasadnutia_v_db = { z.datum: z for z in Zasadnutie.objects.all() }
 
 	# aktualizuj momenty v databaze
 	for riadok in momenty_csv:
-		datum = datetime.strptime(riadok[0], '%d.%m.%Y').date()
+		datum = datetime.strptime(riadok[0].replace(' ', ''), '%d.%m.%Y').date()
 		video_nazov = riadok[1]
 		cas = cas_na_sekundy(riadok[2])
 		text = riadok[3]
 
 		# najdi zasadnutie pre datum na riadku, pripadne vloz nove
 		try:
-			z = zasadnutia[datum]
+			z = zasadnutia_v_db[datum]
 		except KeyError:
-			z = Zasadnutie(datum=datum)
+			# najdi volebne obdobie zasadnutia, pripadne vloz nove
+			obdobie = [o for o in obdobia if (not o[1] or datum>=o[1]) and (not o[2] or datum<=o[2])]
+			if not obdobie:
+				raise RuntimeError('V zozname volebných období chýba obdobie pre zasadnutie %s' % datum)
+			obdobie = obdobie[0]
+			try:
+				o = obdobia_v_db[obdobie[0]]
+			except KeyError:
+				o = Obdobie(nazov=obdobie[0], zaciatok=obdobie[1], koniec=obdobie[2])
+				o.save()
+				obdobia_v_db[obdobie[0]] = o
+			z = Zasadnutie(datum=datum, obdobie=o)
 			z.save()
-			zasadnutia[datum] = z
+			zasadnutia_v_db[datum] = z
 
 		# najdi video pre nazov videa na riadku, pripadne vloz nove
 		try:
-			v = videa[video_nazov]
+			v = videa_v_db[video_nazov]
 		except KeyError:
 			ytid = video_ytid[video_nazov] if video_nazov in video_ytid.keys() else ''
 			v = Video(nazov=video_nazov, youtube_id=ytid, zasadnutie=z)
 			v.save()
-			videa[video_nazov] = v
+			videa_v_db[video_nazov] = v
 
 		try:
 			m = Moment.objects.get(video=v, cas=cas)

@@ -67,25 +67,38 @@ def index(request, datum_zasadnutia, cislo_bodu):
 
 from zex.update import update_data
 def update(request):
-	z, v, b, m = update_data()
+	o, z, v, b, m = update_data()
 	_uloz_body_zasadnuti()
-	context = { 'zasadnuti': z, 'videi': v, 'bodov': b, 'momentov': m }
+	context = { 'obdobi': o, 'zasadnuti': z, 'videi': v, 'bodov': b, 'momentov': m }
 	return render(request, 'zex/update.html', context)
 
 def _uloz_body_zasadnuti():
-	body = Bod.objects.select_related('zasadnutie')
+	body = Bod.objects.select_related('zasadnutie', 'zasadnutie__obdobie')
 	
-	# rozdelenie vsetkych bodov do hierarchie zasadnutie-bod
-	zasadnutia = OrderedDict()
+	# rozdelenie vsetkych bodov do hierarchie obdobie-zasadnutie-bod
+	obdobia = OrderedDict()
 	for bod in body:
+		oid = bod.zasadnutie.obdobie_id
+		if oid not in obdobia:
+			obdobia[oid] = { 'polia': bod.zasadnutie.obdobie, 'zasadnutia': OrderedDict() }
 		zid = bod.zasadnutie_id
-		if zid not in zasadnutia:
-			zasadnutia[zid] = { 'polia': bod.zasadnutie, 'body': [] }
-		zasadnutia[zid]['body'].append(bod)
-	zasadnutia = zasadnutia.values()
+		if zid not in obdobia[oid]['zasadnutia']:
+			obdobia[oid]['zasadnutia'][zid] = { 'polia': bod.zasadnutie, 'body': [] }
+		obdobia[oid]['zasadnutia'][zid]['body'].append(bod)
+	obdobia = obdobia.values()
+	for obdobie in obdobia:
+		obdobie['zasadnutia'] = obdobie['zasadnutia'].values()
+
+	# zasadnutia = OrderedDict()
+	# for bod in body:
+		# zid = bod.zasadnutie_id
+		# if zid not in zasadnutia:
+			# zasadnutia[zid] = { 'polia': bod.zasadnutie, 'body': [] }
+		# zasadnutia[zid]['body'].append(bod)
+	# zasadnutia = zasadnutia.values()
 	
-	context = { 'zasadnutia': zasadnutia }
-	js = render_to_string('zex/zasadnutia.js', context)
+	context = { 'obdobia': obdobia }
+	js = render_to_string('zex/selectboxy.js', context)
 	
-	with open('/var/www/zex/zex/static/zex/js/zasadnutia.js', 'w', encoding='utf-8', newline='') as file:
+	with open('zex/static/zex/js/selectboxy.js', 'w', encoding='utf-8', newline='') as file:
 		file.write(js)

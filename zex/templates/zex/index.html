@@ -16,6 +16,11 @@
 	<div id="player"></div>
 	<form id="search-form" action="" method="get">
 		<ul>
+			<li id="vyber-obdobia">
+				<label for="obdobie-select">Obdobie:</label>
+				<select id="obdobie-select" name="vo" style="width: 140px">
+				</select>
+			</li>
 			<li id="vyber-zasadnutia">
 				<label for="zasadnutie-select">Zasadnutie:</label>
 				<select id="zasadnutie-select" name="dz" style="width: 140px">
@@ -113,7 +118,7 @@
 	</script>
 
 	<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-	<script src="{% static 'zex/js/zasadnutia.js' %}"></script>
+	<script src="{% static 'zex/js/selectboxy.js' %}"></script>
 	<script src="{% static 'zex/js/script.js' %}"></script>
 	<script src="{% static 'zex/js/highlight.js' %}"></script>
 </body>

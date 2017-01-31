@@ -3,8 +3,22 @@ from djorm_pgfulltext.models import SearchManager
 from djorm_pgfulltext.fields import VectorField
 
 
+class Obdobie(models.Model):
+	nazov = models.CharField(max_length=50, unique=True)
+	zaciatok = models.DateField(blank=True, null=True)
+	koniec = models.DateField(blank=True, null=True)
+
+	class Meta:
+		verbose_name_plural = 'Obdobia'
+		ordering = ('zaciatok',)
+
+	def __str__(self):
+		return self.nazov
+
+
 class Zasadnutie(models.Model):
 	datum = models.DateField(unique=True)
+	obdobie = models.ForeignKey(Obdobie)
 
 	class Meta:
 		verbose_name_plural = 'Zasadnutia'
